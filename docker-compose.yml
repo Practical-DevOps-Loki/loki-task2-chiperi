@@ -1,4 +1,11 @@
 services:
+  init-webapp-logs:
+    image: alpine:3.19
+    command: ["sh", "-c", "mkdir -p /tmp/webapp-logs && chown -R 65532:65532 /tmp/webapp-logs"]
+    volumes:
+      - webapp-logs:/tmp/webapp-logs
+    restart: "no"
+
   webapp:
     container_name: webapp
     build:
@@ -11,6 +18,7 @@ services:
       - "8080:8080"
     depends_on:
       - loki
+      - init-webapp-logs
 
   loki:
     image: grafana/loki:2.9.3
@@ -26,6 +34,7 @@ services:
     command: -config.file=/etc/promtail/config.yml
     depends_on:
       - loki
+      - init-webapp-logs
     volumes:
       - ./promtail-config.yml:/etc/promtail/config.yml:ro
       - webapp-logs:/tmp/webapp-logs:ro
@@ -38,8 +47,12 @@ services:
       - loki
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
     volumes:
       - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
 
 volumes:
   loki-data:

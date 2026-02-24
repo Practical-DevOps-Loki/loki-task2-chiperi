@@ -4,6 +4,7 @@ describe('Loki Test', () => {
     cy.contains('Label browser').click();
     cy.get('button[title="varlogs"]').click();
     cy.get('button[aria-label="Use selector as logs button"]').click();
-    cy.get('[class$="log-token-string"]').should('contain', '"GET"');
+    cy.get('button[aria-label="Refresh"]').click();
+    cy.get('[class$="log-token-string"]', { timeout: 10000 }).should('contain', 'GET');
   });
 });
